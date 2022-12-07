@@ -4,6 +4,8 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import kr.ac.kumoh.ce.s20181091.w1001intentdata1207.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
@@ -12,6 +14,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var launcher: ActivityResultLauncher<Intent>
+
+
 
     override fun onClick(v: View?) {
         val intent = Intent(this, ImageActivity::class.java)
@@ -21,8 +26,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             else -> return
         }
         intent.putExtra(keyName, value)
-        startActivity(intent)
+        launcher.launch(intent)
     }
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -31,5 +39,32 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         binding.btnMessi.setOnClickListener(this)
         binding.btnMbappe.setOnClickListener(this)
 
-        }
+        launcher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()) {
+
+                    if(it.resultCode != RESULT_OK)
+                        return@registerForActivityResult
+
+
+                    val result = it.data?.getIntExtra(ImageActivity.resultName,
+                            ImageActivity.NONE)
+
+
+                    val str = when (result) {
+                        ImageActivity.LIKE -> "좋아요"
+                        ImageActivity.DISLIKE -> "싫어요"
+                        else -> ""
+                    }
+
+
+                    val image = it.data?.getStringExtra(ImageActivity.imageName)
+
+
+
+                    when(image) {
+                        "messi" -> binding.btnMessi.text = "메시 ($str)"
+                        "mbappe" -> binding.btnMbappe.text = "음바페 ($str)"
+                    }
+            }
     }
+}
